@@ -51,16 +51,30 @@
       args:
         chdir: "{{ ansible_env.HOME }}"
 
-    - name: Adicionar chave pem às configs ansible
+    - name: Add ansible-servers group to hosts file
       lineinfile:
         path: /etc/ansible/hosts
-        insertbefore: ansible-servers
-        line: "[all_servers:vars]"
+        line: "[ansible-servers]"
+        create: yes
+        state: present
+      notify: Insert ansible1 to ansible-servers
+
+    - name: Add web-servers group to hosts file
+      lineinfile:
+        path: /etc/ansible/hosts
+        line: "[web-servers]"
         state: present
 
-    - name: Adicionar chave pem às configs ansible
+    - name: Add db-servers group to hosts file
       lineinfile:
         path: /etc/ansible/hosts
-        insertafter: all_servers
-        line: ansible_ssh_private_key_file=/root/2505key.pem
+        line: "[db-servers]"
         state: present
+
+  handlers:
+    - name: Insert ansible1 to ansible-servers
+      lineinfile:
+        path: /etc/ansible/hosts
+        insertafter: "ansible-servers"
+        line: "ansible1 ansible_host=localhost"
+
