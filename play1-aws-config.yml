@@ -1,0 +1,66 @@
+---
+- name: Instalação de dependências
+  hosts: localhost
+  become: true
+  tasks:
+    - name: Instalar git
+      dnf:
+        name: git
+        state: present
+    
+    - name: Install Unzip
+      yum:
+        name: unzip
+        state: present
+
+    - name: Instalar Python 3.9 e pip
+      dnf:
+        name: python3.9-pip
+        state: present
+
+    - name: Instalar boto3 e botocore usando pip3.9
+      pip:
+        name: "{{ item }}"
+        executable: pip3.9
+      loop:
+        - boto3
+        - botocore
+
+    - name: Instalar Ansible Core
+      dnf:
+        name: ansible-core
+        state: present
+
+    - name: Baixar AWS CLI
+      command: "curl -o awscliv2.zip https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip"
+      args:
+        chdir: "{{ ansible_env.HOME }}"
+
+    - name: Extrair AWS CLI
+      command: "unzip -o awscliv2.zip"
+      args:
+        chdir: "{{ ansible_env.HOME }}"
+
+    - name: Instalar AWS CLI
+      command: "./aws/install --update"
+      args:
+        chdir: "{{ ansible_env.HOME }}"
+
+    - name: instalar galaxy
+      command: "ansible-galaxy collection install amazon.aws"
+      args:
+        chdir: "{{ ansible_env.HOME }}"
+
+    - name: Adicionar chave pem às configs ansible
+      lineinfile:
+        path: /etc/ansible/hosts
+        insertbefore: ansible-servers
+        line: "[all_servers:vars]"
+        state: present
+
+    - name: Adicionar chave pem às configs ansible
+      lineinfile:
+        path: /etc/ansible/hosts
+        insertafter: all_servers
+        line: ansible_ssh_private_key_file=/root/2505key.pem
+        state: present
