@@ -1,0 +1,51 @@
+---
+- name: Provisionar instância RDS na AWS
+  hosts: localhost
+  gather_facts: no
+  vars:
+    ansible_python_interpreter: "/usr/bin/python3.9"
+    my_ssh_key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+  tasks:
+    - name: Criar grupo de sub-redes RDS
+      amazon.aws.rds_subnet_group:
+        state: present
+        name: subgroup-mack-useast1-alunos1
+        description: "Grupo de sub-redes para RDS"
+        subnets: 
+          - subnet-0ef28efe8293628c4
+          - subnet-0ddc059cd87bc3bb4
+          - subnet-0066f92af6d7fb54e
+
+    - name: Criar instância RDS
+      amazon.aws.rds_instance:
+        db_instance_identifier: "rds-mack-useast1-alu1"
+        db_instance_class: db.t3.micro
+        engine: mysql
+        engine_version: '8.0.36'
+        allocated_storage: 20
+        master_username: admin
+        master_user_password: senha123
+        db_name: dbAlunosIac
+        db_subnet_group_name: subgroup-mack-useast1-alunos1
+        vpc_security_group_ids: 
+          - sg-0e473b657284e9f88
+        publicly_accessible: no
+        state: present
+      register: rds
+
+    - name: Esperar pela criação da instância RDS
+      amazon.aws.rds_instance_info:
+        db_instance_identifier: rds-mack-useast1-alu1
+      register: rds_info
+      until: rds_info.instances[0].db_instance_status == 'available'
+      retries: 30
+      delay: 20
+
+    - name: Adicionar IP ao grupo específico no arquivo ansible/hosts
+      lineinfile:
+        path: /etc/ansible/hosts
+        insertafter: db-servers
+        line: "dbAlunosIac ansible_host={{ rds_info.instances[0].endpoint.address }}:{{ rds_info.instances[0].endpoint.port }}"
+        state: present
+      delegate_to: localhost
+      become: yes
