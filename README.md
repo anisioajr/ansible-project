@@ -2,6 +2,7 @@
 
 Para a execução deste projeto, primeiramente deve ser criada uma máquina EC2 para a execução do servidor ansible. 
 Criar a maquina do tipo [RedHat] com o nome [ansible-server].
+Salvar seu par de chaves .pem para utilização
 
 Após sua inicialização e conexão via SSH, realizar os passos de configuração a seguir:
 
