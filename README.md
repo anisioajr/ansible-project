@@ -3,6 +3,7 @@
 Para a execução deste projeto, primeiramente deve ser criada uma máquina EC2 para a execução do servidor ansible. 
 Criar a maquina do tipo [RedHat] com o nome [ansible-server] no security group [default].
 Salvar seu par de chaves .pem para utilização
+Não esqueça de ter certeza que o security group onde sua maquina ansible está possui a porta 22 aberta para realização da conexão
 
 Após sua inicialização e conexão via SSH, realizar os passos de configuração a seguir:
 
