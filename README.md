@@ -45,10 +45,12 @@ Gerar a chave pública para compartilhamento com as demais instancias:
 
 Configurar o playbook de criação das instancias colocando no step [Provisionar instância EC2 para o servidor web] o nome da chave pem no atributo [key_name], o nome de sua subnet no atributo [vpc_subnet_id] e a imagem de instancia desejada no atributo [image_id] podendo manter o que já está configurado por hora.
 
-> play2
+Colocar o arquivo .pem no qual utilizará para a criação da instância utilizando o editor de texto e colando o conteúdo no arquivo. Ex:
 
-ir até o repositório clonado e executar o playbook para a criação das instancias 
+    vi 0406key.pem
 
+Ir até o repositório clonado e executar o playbook para a criação das instancias
+Executar o playbook para cria
     Play2
     Play4
 
