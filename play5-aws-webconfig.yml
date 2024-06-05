@@ -1,0 +1,14 @@
+---
+- name: Apache Instalation
+  hosts: web-server-1
+  gather_facts: no
+  become: yes 
+  tasks:
+    - name: Instalar Apache
+      yum:
+        name: httpd
+        state: latest
+    - name: Start Apache
+      ansible.builtin.service:
+        name: httpd
+        state: started
