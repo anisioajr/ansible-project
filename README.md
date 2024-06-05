@@ -45,19 +45,51 @@ Gerar a chave pública para compartilhamento com as demais instancias:
 
 Configurar o playbook de criação das instancias colocando no step [Provisionar instância EC2 para o servidor web] o nome da chave pem no atributo [key_name], o nome de sua subnet no atributo [vpc_subnet_id] e a imagem de instancia desejada no atributo [image_id] podendo manter o que já está configurado por hora.
 
-> play2
+Colocar o arquivo .pem no qual utilizará para a criação da instância utilizando o editor de texto e colando o conteúdo no arquivo. Ex:
 
-ir até o repositório clonado e executar o playbook para a criação das instancias 
+    vi 0406key.pem
 
-    Play2
-    Play4
+Ir até o repositório clonado e executar o playbook para a criação das instancias
+Executar o playbook para criação da instancia e inclusão no arquivo de hosts
 
-Conectar nas instâncias e copiar o conteúdo da chave pública do servidor nas novas instâncias para permitir suas configurações remotas:
+    play2-aws-ec2.yml
+
+
+Conectar na instância e copiar o conteúdo da chave pública do servidor nas novas instâncias para permitir suas configurações remotas:
 - visualizar o conteúdo
 
   > cat /root/.ssh/id_rsa.pub
   
-- conectar na instancia destino via SSH
+conectar na instancia destino via SSH, exemplo
 
-  > 
+    ssh -i "0406key.pem" ec2-user@ec2-18-229-148-27.sa-east-1.compute.amazonaws.com
+
+- ir até o arquivo
+
+  > /root/.ssh/authorized_keys
+  
+Colar o conteúdo da chave id_rsa.pub, salvar e retornar à sua instância ansible.
+  
+Realizar  verificação de conexão na instância criada com o comando
+
+    ansible web-server-1 -m ping
+
+Se retornar erro significa que a maquina está disponível e a configuração está finalizada
+
+Executar o playbook para criação da instancia RDS e inclusão no arquivo de hosts
+
+    play4-aws-rds.yml
+
+
+
+
+
+
+
+
+
+
+
+
+
   
