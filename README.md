@@ -7,13 +7,10 @@ Não esqueça de ter certeza que o security group onde sua maquina ansible está
 
 Após sua inicialização e conexão via SSH, realizar os passos de configuração a seguir:
 
-Alterar nome da maquina
+Alterar nome da maquina (opcional)
 
     $ hostnamectl set-hostname server1
    
-Criar chave SSH
-
-    ssh-keygen
 
 gerado em
 > /root/.ssh/id_rsa.pub

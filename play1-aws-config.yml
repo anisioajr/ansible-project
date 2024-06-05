@@ -35,21 +35,25 @@
       command: "curl -o awscliv2.zip https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip"
       args:
         chdir: "{{ ansible_env.HOME }}"
+      become: yes
 
     - name: Extrair AWS CLI
       command: "unzip -o awscliv2.zip"
       args:
         chdir: "{{ ansible_env.HOME }}"
+      become: yes
 
     - name: Instalar AWS CLI
       command: "./aws/install --update"
       args:
         chdir: "{{ ansible_env.HOME }}"
+      become: yes
 
     - name: instalar galaxy
       command: "ansible-galaxy collection install amazon.aws"
       args:
         chdir: "{{ ansible_env.HOME }}"
+      become: yes
 
     - name: Add ansible-servers group to hosts file
       lineinfile:

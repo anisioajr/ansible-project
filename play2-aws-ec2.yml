@@ -8,27 +8,33 @@
       ec2_group:
         name: default
         description: "Allow HTTP traffic"
-        region: us-east-1
+        region: sa-east-1
         rules:
           - proto: tcp
             from_port: 80
             to_port: 80
             cidr_ip: 0.0.0.0/0
+          - proto: tcp
+            from_port: 22
+            to_port: 22
+            cidr_ip: 0.0.0.0/0
         aws_access_key: "{{ lookup('env', 'AWS_ACCESS_KEY_ID') }}"
         aws_secret_access_key: "{{ lookup('env', 'AWS_SECRET_ACCESS_KEY') }}"
       register: update_sg
+      when: update_sg.security_group is not defined or
+            not update_sg.security_group.rules | selectattr('from_port', 'eq', 22) | list
 
     - name: Provisionar instância EC2 para o servidor web
       amazon.aws.ec2_instance:
          name: "web-server-1"
-         key_name: "2505key"
-         region: us-east-1
+         key_name: "0406key"
+         region: sa-east-1
          instance_type: t2.micro
          security_group: default
          network:
            assign_public_ip: true
            vpc_subnet_id: subnet-0ef28efe8293628c4
-         image_id: ami-0fe630eb857a6ec83
+         image_id: ami-038b785927246c729
          tags:
            Environment: Testing
       register: ec2_remote_facts

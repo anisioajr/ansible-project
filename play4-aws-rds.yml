@@ -5,16 +5,42 @@
   vars:
     ansible_python_interpreter: "/usr/bin/python3.9"
     my_ssh_key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+    aws_region: "us-east-1"
   tasks:
+
+    - name: Obter informações sobre as VPCs
+      amazon.aws.ec2_vpc_net_info:
+        region: "{{ aws_region }}"
+      register: vpc_info
+
+    - name: Filtrar a VPC padrão
+      set_fact:
+        default_vpc_id: "{{ item.id }}"
+      loop: "{{ vpc_info.vpcs }}"
+      when: item.instance_tenancy == 'default'
+
+    - name: Obter informações das sub-redes da VPC padrão
+      amazon.aws.ec2_vpc_subnet_info:
+        region: "{{ aws_region }}"
+        filters:
+          vpc-id: "{{ default_vpc_id }}"
+      register: default_subnet_info
+
     - name: Criar grupo de sub-redes RDS
       amazon.aws.rds_subnet_group:
         state: present
         name: subgroup-mack-useast1-alunos1
         description: "Grupo de sub-redes para RDS"
-        subnets: 
-          - subnet-0ef28efe8293628c4
-          - subnet-0ddc059cd87bc3bb4
-          - subnet-0066f92af6d7fb54e
+        subnets: "{{ default_subnet_info.subnets | map(attribute='id') | list }}"
+        region: "{{ aws_region }}"
+
+    - name: Obter informações do grupo de segurança padrão da VPC padrão
+      amazon.aws.ec2_security_group_info:
+        region: "{{ aws_region }}"
+        filters:
+          vpc-id: "{{ default_vpc_id }}"
+          group-name: default
+      register: default_security_group_info
 
     - name: Criar instância RDS
       amazon.aws.rds_instance:
@@ -27,15 +53,17 @@
         master_user_password: senha123
         db_name: dbAlunosIac
         db_subnet_group_name: subgroup-mack-useast1-alunos1
-        vpc_security_group_ids: 
-          - sg-0e473b657284e9f88
+        vpc_security_group_ids:
+          - "{{ default_security_group_info.security_groups[0].group_id }}"
         publicly_accessible: no
         state: present
+        region: "{{ aws_region }}"
       register: rds
 
     - name: Esperar pela criação da instância RDS
       amazon.aws.rds_instance_info:
         db_instance_identifier: rds-mack-useast1-alu1
+        region: "{{ aws_region }}"
       register: rds_info
       until: rds_info.instances[0].db_instance_status == 'available'
       retries: 30
