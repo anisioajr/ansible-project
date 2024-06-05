@@ -78,7 +78,7 @@ Se retornar erro significa que a maquina está disponível e a configuração es
 
 Executar o playbook para criação da instancia RDS e inclusão no arquivo de hosts
 
-    play4
+    play4-aws-rds.yml
 
 
 
