@@ -55,6 +55,12 @@
         chdir: "{{ ansible_env.HOME }}"
       become: yes
 
+    - name: instalar galaxy
+      command: "ansible-galaxy collection install community.postgresql"
+      args:
+        chdir: "{{ ansible_env.HOME }}"
+      become: yes
+      
     - name: Add ansible-servers group to hosts file
       lineinfile:
         path: /etc/ansible/hosts
