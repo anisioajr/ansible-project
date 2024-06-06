@@ -80,6 +80,15 @@ Executar o playbook para criação da instancia RDS e inclusão no arquivo de ho
 
     play4-aws-rds.yml
 
+Caso queira testar a conexão, execute o playbook a seguir:
+
+    play4-aws-teste-rds.yml
+
+ Agora vamos fazer o deploy da página estática e configuração do servidor executando os playbooks a seguir:
+
+     play5-aws-webconfig.yml
+     play6-app-web-deploy.yml
+
 
 
 
