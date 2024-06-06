@@ -56,7 +56,7 @@
       become: yes
 
     - name: instalar galaxy
-      command: "ansible-galaxy collection install community.postgresql"
+      command: "ansible-galaxy collection install community.mysql"
       args:
         chdir: "{{ ansible_env.HOME }}"
       become: yes
