@@ -46,7 +46,7 @@
          network:
            assign_public_ip: true
            vpc_subnet_id: subnet-0ef28efe8293628c4
-         image_id: ami-038b785927246c729
+         image_id: ami-0fe630eb857a6ec83
          tags:
            Environment: Testing
       register: ec2_remote_facts
