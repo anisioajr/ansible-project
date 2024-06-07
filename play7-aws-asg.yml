@@ -1,0 +1,67 @@
+---
+- name: Configurar Auto Scaling Group
+  hosts: localhost
+  gather_facts: false
+  vars:
+    aws_region: "us-east-1"
+    instance_type: "t2.micro"
+    ami_id: "ami-0fe630eb857a6ec83"  # Substitua pelo AMI desejado
+    key_name: "0606key"              # Substitua pelo nome da sua chave
+  tasks:
+    - name: Criar Launch Configuration
+      ec2_lc:
+        name: my-launch-config
+        image_id: "{{ ami_id }}"
+        key_name: "{{ key_name }}"
+        instance_type: "{{ instance_type }}"
+        region: "{{ aws_region }}"
+        security_groups: [default]  # Substitua pelo nome do seu grupo de segurança
+        user_data: |
+          #!/bin/bash
+          echo "Hello, World!" > /tmp/hello.txt  # Exemplo de script de inicialização
+      register: lc_result
+
+    - name: Exibir resultado da criação da configuração de lançamento
+      debug:
+        var: lc_result
+
+    - name: Obter informações sobre as VPCs
+      amazon.aws.ec2_vpc_net_info:
+        region: "{{ aws_region }}"
+      register: vpc_info
+
+    - name: Filtrar a VPC padrão
+      set_fact:
+        default_vpc_id: "{{ item.id }}"
+      loop: "{{ vpc_info.vpcs }}"
+      when: item.instance_tenancy == 'default'
+
+    - name: Obter informações das sub-redes da VPC padrão
+      amazon.aws.ec2_vpc_subnet_info:
+        region: "{{ aws_region }}"
+        filters:
+          vpc-id: "{{ default_vpc_id }}"
+      register: default_subnet_info
+
+    - name: Criar lista de IDs de sub-redes
+      set_fact:
+        subnet_ids: "{{ default_subnet_info.subnets | map(attribute='id') | list }}"
+
+    - name: Criar Auto Scaling Group
+      ec2_asg:
+        name: my-auto-scaling-group
+        launch_config_name: my-launch-config
+        min_size: 1
+        max_size: 5
+        desired_capacity: 2
+        vpc_zone_identifier: "{{ subnet_ids }}"
+        region: "{{ aws_region }}"
+        tags:
+          - key: Name
+            value: my-auto-scaling-group
+            propagate_at_launch: true
+      register: asg_result
+
+    - name: Exibir resultado
+      debug:
+        var: asg_result
