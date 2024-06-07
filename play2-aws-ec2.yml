@@ -3,20 +3,56 @@
   hosts: localhost
   vars:
     ansible_python_interpreter: "/usr/bin/python3.9"
+    aws_region: "us-east-1"
   tasks:
+
+    - name: Garantir que o diretório de destino exista
+      file:
+        path: /root/.aws
+        state: directory
+        owner: root
+        group: root
+        mode: '0700'
+
+    - name: Copiar arquivo de credenciais AWS para o diretório root
+      copy:
+        src: /home/ec2-user/.aws/credentials
+        dest: /root/.aws/credentials
+        owner: root
+        group: root
+        mode: '0600'
+
     - name: Remover configuração anterior de IP ao grupo no arquivo ansible/hosts
       lineinfile:
-         path: /etc/ansible/hosts
-         insertafter: web-servers
-         line: "web-server-1 ansible_host={{ item.public_ip_address }}"
-         state: absent
+        path: /etc/ansible/hosts
+        insertafter: web-servers
+        line: "web-server-1" 
+        state: absent
       become: yes
-      
+
+    - name: Obter informações sobre as VPCs
+      amazon.aws.ec2_vpc_net_info:
+        region: "{{ aws_region }}"
+      register: vpc_info
+
+    - name: Filtrar a VPC padrão
+      set_fact:
+        default_vpc_id: "{{ item.id }}"
+      loop: "{{ vpc_info.vpcs }}"
+      when: item.instance_tenancy == 'default'
+
+    - name: Obter informações das sub-redes da VPC padrão
+      amazon.aws.ec2_vpc_subnet_info:
+        region: "{{ aws_region }}"
+        filters:
+          vpc-id: "{{ default_vpc_id }}"
+      register: default_subnet_info
+
     - name: Open port 80 in the security group
       ec2_group:
         name: default
         description: "Allow HTTP traffic"
-        region: us-east-1
+        region: "{{ aws_region }}"
         rules:
           - proto: tcp
             from_port: 80
@@ -36,16 +72,20 @@
       when: update_sg.security_group is not defined or
             not update_sg.security_group.rules | selectattr('from_port', 'eq', 22) | list
 
+    - name: Definir o ID da sub-rede da primeira AZ
+      set_fact:
+        first_subnet_id: "{{ default_subnet_info.subnets[0].id }}"
+
     - name: Provisionar instância EC2 para o servidor web
       amazon.aws.ec2_instance:
          name: "web-server-1"
-         key_name: "0406key"
-         region: us-east-1
+         key_name: "0606key"
+         region: "{{ aws_region }}"
          instance_type: t2.micro
          security_group: default
          network:
            assign_public_ip: true
-           vpc_subnet_id: subnet-0ef28efe8293628c4
+           vpc_subnet_id: "{{ first_subnet_id }}" # subnet-0ef28efe8293628c4
          image_id: ami-0fe630eb857a6ec83
          tags:
            Environment: Testing
@@ -60,4 +100,3 @@
       with_items: "{{ ec2_remote_facts.instances }}"
       delegate_to: localhost
       become: yes
-
