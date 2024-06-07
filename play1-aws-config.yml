@@ -18,11 +18,18 @@
         name: python3.9-pip
         state: present
 
-    - name: Instalar boto3 e botocore usando pip3.9
+    - name: Criar diretório /opt/webhook
+      file:
+        path: /opt/webhook
+        state: directory
+        mode: '0755'
+        
+    - name: Instalar flask, boto3 e botocore usando pip3.9
       pip:
         name: "{{ item }}"
         executable: pip3.9
       loop:
+        - flask
         - boto3
         - botocore
 
