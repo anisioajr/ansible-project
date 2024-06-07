@@ -4,8 +4,8 @@ Description=GitHub Webhook Listener
 [Service]
 ExecStart=/usr/bin/python3 /opt/webhook/webhook.py
 Restart=always
-User=apache
-Group=apache
+User=root
+Group=root
 Environment=PATH=/usr/bin
 WorkingDirectory=/opt/webhook
 
