@@ -4,6 +4,14 @@
   vars:
     ansible_python_interpreter: "/usr/bin/python3.9"
   tasks:
+    - name: Remover configuração anterior de IP ao grupo no arquivo ansible/hosts
+      lineinfile:
+         path: /etc/ansible/hosts
+         insertafter: web-servers
+         line: "web-server-1 ansible_host={{ item.public_ip_address }}"
+         state: absent
+      become: yes
+      
     - name: Open port 80 in the security group
       ec2_group:
         name: default
