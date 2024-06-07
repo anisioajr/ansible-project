@@ -24,14 +24,18 @@ instalar ansible
     dnf install ansible-core
 
 instalar o git
+
     dnf install git
+
+>> configurar o git
+>> 
 
 Realizar clone do repositorio
     https://github.com/anisioajr/ansible-project
-de preferência no diretório ~/root/
+de preferência no diretório /root/
 
 
-executar install aws a partir do playbook a seguir:
+executar configuração aws e do servidor atual a partir do playbook a seguir copiado no diretorio ansible-project:
 
     play1-aws-config.yml
 
