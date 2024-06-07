@@ -3,11 +3,6 @@
   hosts: localhost
   become: true
   tasks:
-    - name: Instalar git
-      dnf:
-        name: git
-        state: present
-    
     - name: Install Unzip
       yum:
         name: unzip
@@ -23,20 +18,22 @@
         path: /opt/webhook
         state: directory
         mode: '0755'
+
+    - name: Criar diretório /etc/systemd/system/
+      file:
+        path: /etc/systemd/system/
+        state: directory
+        mode: '0755'
         
     - name: Instalar flask, boto3 e botocore usando pip3.9
       pip:
         name: "{{ item }}"
         executable: pip3.9
       loop:
+        - ansible
         - flask
         - boto3
         - botocore
-
-    - name: Instalar Ansible Core
-      dnf:
-        name: ansible-core
-        state: present
 
     - name: Baixar AWS CLI
       command: "curl -o awscliv2.zip https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip"
@@ -87,11 +84,64 @@
         path: /etc/ansible/hosts
         line: "[db-servers]"
         state: present
+        
+    - name: Copiar arquivo webhook.py para /opt/webhook
+      copy:
+        src: /root/ansible-project/webhook.py
+        dest: /opt/webhook/webhook.py
+        owner: root
+        group: root
+        mode: '0644'
+        
+    - name: Copiar arquivo webhook.service para /etc/systemd/system/webhook.service
+      copy:
+        src: /root/ansible-project/webhook.service
+        dest: /etc/systemd/system/webhook.service
+        owner: root
+        group: root
+        mode: '0644'
 
+    - name: Recarregar o daemon do systemd
+      command: systemctl daemon-reload
+
+    - name: Habilitar o serviço webhook
+      systemd:
+        name: webhook.service
+        enabled: yes
+
+    - name: Iniciar o serviço webhook
+      systemd:
+        name: webhook.service
+        state: started
+
+    - name: Instalar iptables-services
+      yum:
+        name: iptables-services
+        state: present
+
+    - name: Habilitar o serviço iptables
+      systemd:
+        name: iptables
+        enabled: yes
+
+    - name: Iniciar o serviço iptables
+      systemd:
+        name: iptables
+        state: started
+
+    - name: Adicionar regra para aceitar tráfego TCP na porta 80
+      command: iptables -I INPUT -p tcp --dport 80 -j ACCEPT
+
+    - name: Salvar as regras do iptables
+      command: service iptables save
+      
   handlers:
     - name: Insert ansible1 to ansible-servers
       lineinfile:
         path: /etc/ansible/hosts
         insertafter: "ansible-servers"
         line: "ansible1 ansible_host=localhost"
+        state: present
+
+        
 
