@@ -92,11 +92,12 @@
         owner: root
         group: root
         mode: '0644'
-
+7
 
     - name: create a key pair
       amazon.aws.ec2_key:
         name: "0206key"
+        region: "{{ aws_region }}"
       register: ec2_key_result
     - name: show variables
       debug:
