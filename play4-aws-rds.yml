@@ -7,6 +7,12 @@
     my_ssh_key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
     aws_region: "us-east-1"
   tasks:
+    - name: Instalar PyMySQL via pip3
+      ansible.builtin.command:
+        cmd: "pip3 install pymysql"
+        executable: "{{ ansible_python_interpreter }}"
+        creates: "/usr/local/lib/python3.x/dist-packages/PyMySQL"  # Caminho onde o pacote instalado fica
+
 
     - name: Obter informações sobre as VPCs
       amazon.aws.ec2_vpc_net_info:
@@ -77,27 +83,21 @@
         state: present
       delegate_to: localhost
       become: yes
-
-
-    - name: Ensure Python MySQL library is installed
-      pip:
-        name: mysql-connector-python
-        state: present
-
-    - name: Create table in RDS
-      mysql_db:
+    
+    - name: Create a DB  in the database
+      mysql_query:
         login_host: "{{ rds_info.instances[0].endpoint.address }}"
         login_port: "{{ rds_info.instances[0].endpoint.port }}"
         login_user: admin
         login_password: senha123
-        name: dbAlunosIac
-        state: present
+        query: "CREATE DATABASE IF NOT EXISTS dbAlunosIac"
 
+    
     - name: Create a table in the database
       mysql_query:
         login_host: "{{ rds_info.instances[0].endpoint.address }}"
         login_port: "{{ rds_info.instances[0].endpoint.port }}"
         login_user: admin
         login_password: senha123
-        db: dbAlunosIac
+        login_db: "dbAlunosIac"
         query: "CREATE TABLE IF NOT EXISTS tb_register (id INT AUTO_INCREMENT PRIMARY KEY, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)"

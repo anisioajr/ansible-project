@@ -6,7 +6,7 @@
   tasks:
     - name: Verificar conexão com o banco de dados MySQL
       mysql_db:
-        login_host: "rds-mack-useast1-alu1.c6acl4fe98wt.sa-east-1.rds.amazonaws.com"
+        login_host: "rds-mack-useast1-alu1.cegqxepnhyuc.us-east-1.rds.amazonaws.com"
         login_user: "admin"
         login_password: "senha123"
         name: "information_schema" 
