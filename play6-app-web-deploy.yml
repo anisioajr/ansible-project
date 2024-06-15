@@ -1,6 +1,7 @@
 ---
 - name: Clonar repositório Git e copiar conteúdo para servidor web
   hosts: web-server-1
+  become: true
   tasks:
     - name: Criar diretório do repositório no servidor
       file:

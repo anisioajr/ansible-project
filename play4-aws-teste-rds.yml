@@ -16,3 +16,12 @@
       debug:
         msg: "Conexão com RDS MySQL bem-sucedida!"
       when: result.changed
+
+    - name: Consultar dados na tabela
+      mysql_query:
+        login_host: "rds-mack-useast1-alu1.cegqxepnhyuc.us-east-1.rds.amazonaws.com"
+        login_user: "admin"
+        login_password: "senha123"
+        login_db: "dbAlunosIac"
+        query: "SELECT * FROM tb_register"
+      register: query_result
