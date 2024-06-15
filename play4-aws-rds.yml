@@ -77,3 +77,27 @@
         state: present
       delegate_to: localhost
       become: yes
+
+
+    - name: Ensure Python MySQL library is installed
+      pip:
+        name: mysql-connector-python
+        state: present
+
+    - name: Create table in RDS
+      mysql_db:
+        login_host: "{{ rds_info.instances[0].endpoint.address }}"
+        login_port: "{{ rds_info.instances[0].endpoint.port }}"
+        login_user: admin
+        login_password: senha123
+        name: dbAlunosIac
+        state: present
+
+    - name: Create a table in the database
+      mysql_query:
+        login_host: "{{ rds_info.instances[0].endpoint.address }}"
+        login_port: "{{ rds_info.instances[0].endpoint.port }}"
+        login_user: admin
+        login_password: senha123
+        db: dbAlunosIac
+        query: "CREATE TABLE IF NOT EXISTS tb_register (id INT AUTO_INCREMENT PRIMARY KEY, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)"
