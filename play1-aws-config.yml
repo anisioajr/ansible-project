@@ -92,6 +92,22 @@
         owner: root
         group: root
         mode: '0644'
+
+
+    - name: create a key pair
+      amazon.aws.ec2_key:
+        name: "0206key"
+      register: ec2_key_result
+    - name: show variables
+      debug:
+        var: ec2_key_result
+    - name: Save private key
+      copy:
+        content: "{{ ec2_key_result.key.private_key }}"
+        dest: "/root/0206key.pem"
+        mode: '0600'
+        owner: root      
+      when: ec2_key_result.changed
         
     - name: Copiar arquivo webhook.service para /etc/systemd/system/webhook.service
       copy:
@@ -134,6 +150,8 @@
 
     - name: Salvar as regras do iptables
       command: service iptables save
+
+
       
   handlers:
     - name: Insert ansible1 to ansible-servers
