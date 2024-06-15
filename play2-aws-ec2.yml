@@ -79,7 +79,7 @@
     - name: Provisionar instância EC2 para o servidor web
       amazon.aws.ec2_instance:
          name: "web-server-1"
-         key_name: "0606key"
+         key_name: "0206key"
          region: "{{ aws_region }}"
          instance_type: t2.micro
          security_group: default
@@ -95,7 +95,7 @@
       lineinfile:
          path: /etc/ansible/hosts
          insertafter: web-servers
-         line: "web-server-1 ansible_host={{ item.public_ip_address }}"
+         line: "web-server-1 ansible_host={{ item.public_ip_address }} ansible_user=ec2-user  ansible_ssh_private_key_file=0206key.pem"
          state: present
       with_items: "{{ ec2_remote_facts.instances }}"
       delegate_to: localhost
