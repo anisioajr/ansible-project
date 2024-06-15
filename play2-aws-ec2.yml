@@ -48,7 +48,7 @@
           vpc-id: "{{ default_vpc_id }}"
       register: default_subnet_info
 
-    - name: Open port 80 in the security group
+    - name: Abrir as portas necessárias no security group
       ec2_group:
         name: default
         description: "Allow HTTP traffic"
