@@ -59,7 +59,7 @@ Configurar o [play2-aws-ec2.yml] de criação das instancias colocando no step [
 
     play2-aws-ec2.yml
 
-Colocar o arquivo .pem no qual utilizará para a criação da instância utilizando o editor de texto e colando o conteúdo no arquivo. Ex:
+~Colocar o arquivo .pem no qual utilizará para a criação da instância utilizando o editor de texto e colando o conteúdo no arquivo. Ex:~
 
     vi 0606key.pem
 
