@@ -61,23 +61,23 @@ Configurar o [play2-aws-ec2.yml] de criação das instancias colocando no step [
 
 ~Colocar o arquivo .pem no qual utilizará para a criação da instância utilizando o editor de texto e colando o conteúdo no arquivo. Ex:~
 
-    vi 0606key.pem
+    ~vi 0606key.pem~
 
 
-Conectar na instância via ssh em um novo terminal e copiar o conteúdo da chave pública do servidor nas novas instâncias para permitir suas configurações remotas:
-- visualizar o conteúdo no servidor ansible
+~Conectar na instância via ssh em um novo terminal e copiar o conteúdo da chave pública do servidor nas novas instâncias para permitir suas configurações remotas:~
+- ~visualizar o conteúdo no servidor ansible~
 
-  > cat /root/.ssh/id_rsa.pub
+  > ~cat /root/.ssh/id_rsa.pub~
   
-conectar na instancia destino via SSH, exemplo
+~conectar na instancia destino via SSH, exemplo~
 
-    ssh -i "0406key.pem" ec2-user@ec2-18-229-148-27.sa-east-1.compute.amazonaws.com
+    ~ssh -i "0406key.pem" ec2-user@ec2-18-229-148-27.sa-east-1.compute.amazonaws.com~
 
-- ir até o arquivo para edicao 
+- ~ir até o arquivo para edicao~ 
 
-  > vi /root/.ssh/authorized_keys
+  > ~vi /root/.ssh/authorized_keys~
   
-Copiar a chave do servidor ansible e colar o conteúdo da chave id_rsa.pub, salvar e retornar à sua instância ansible.
+~Copiar a chave do servidor ansible e colar o conteúdo da chave id_rsa.pub, salvar e retornar à sua instância ansible~.
   
 Realizar  verificação de conexão na instância criada com o comando a partir da maquina do ansible
 
