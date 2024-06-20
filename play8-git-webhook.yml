@@ -1,0 +1,40 @@
+---
+- name: Configurar Webhook com DNS Público da Instância EC2
+  hosts: localhost
+  connection: local
+  gather_facts: no
+
+  vars:
+    github_repo: 'anisioajr/web-app-ajr'  # Defina o nome do repositório GitHub
+    github_token: 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  # Defina seu token de acesso GitHub
+    github_user: 'anisioajr'  # Defina seu nome de usuário GitHub
+
+  tasks:
+    - name: Obter informações da instância EC2 com o nome "ansible-server"
+      ec2_instance_info:
+        region: us-east-1
+        filters:
+          "tag:Name": "ansible-server"
+      register: ec2_info
+
+    - name: Extrair DNS público da instância EC2
+      set_fact:
+        public_dns_name: '{{ ec2_info.instances[0].public_dns_name }}'
+
+    - name: Obter lista de webhooks existentes
+      community.general.github_webhook_info:
+        token: '{{ github_token }}'
+        user: '{{ github_user }}'
+        repository: '{{ github_repo }}'
+      register: existing_webhooks
+
+    - name: Atualizar o webhook no GitHub
+      community.general.github_webhook:
+        repository: '{{ github_repo }}'
+        token: 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
+        user: '{{ github_user }}'
+        content_type: json
+        url: 'http://{{ public_dns_name }}/webhook'
+        active: yes
+        events: ['push']
+        state: present
