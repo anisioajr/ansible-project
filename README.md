@@ -96,7 +96,7 @@ Caso queira testar a conexão, execute o playbook a seguir alterando o login_hos
  Agora vamos fazer o deploy da página estática e configuração do servidor executando os playbooks a seguir:
 
      play5-aws-webconfig.yml
-     play6-app-web-deploy.yml
+     play6-app-web-deploy.yml <reexecutar caso tenha que reiniciar o web-server-1
 
 Vá até o repositório e crie um webhook apontando para o DNS publico da sua instância ansible-server criada
 
