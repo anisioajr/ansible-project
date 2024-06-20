@@ -25,8 +25,7 @@
     - name: Remover configuração anterior de IP ao grupo no arquivo ansible/hosts
       lineinfile:
         path: /etc/ansible/hosts
-        insertafter: web-servers
-        line: "web-server-1" 
+        regexp: '^.*web-server-1.*$'
         state: absent
       become: yes
 
@@ -105,4 +104,3 @@
       ansible.builtin.command:
         cmd: "chmod 400 /root/ansible-project/0206key.pem"
       become: yes 
-
