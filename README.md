@@ -98,11 +98,15 @@ Caso queira testar a conexão, execute o playbook a seguir alterando o login_hos
      play5-aws-webconfig.yml
      play6-app-web-deploy.yml <reexecutar caso tenha que reiniciar o web-server-1
 
-Vá até o repositório e crie um webhook apontando para o DNS publico da sua instância ansible-server criada
+~Vá até o repositório e crie um webhook apontando para o DNS publico da sua instância ansible-server criada~
 
-    https://github.com/anisioajr/web-app-ajr/settings/hooks
-    http://<<DNS-IPV4PUB>>/webhook   ===== exemplo:
-    http://ec2-35-169-124-79.compute-1.amazonaws.com/webhook
+    ~https://github.com/anisioajr/web-app-ajr/settings/hooks~
+    ~http://<<DNS-IPV4PUB>>/webhook   ===== exemplo:~
+    ~http://ec2-35-169-124-79.compute-1.amazonaws.com/webhook~
+
+Execute o playbook para configurar o webhook do servidor novo no repositório
+
+    play8-git-webhook.yml
 
 
 
