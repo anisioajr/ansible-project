@@ -21,13 +21,6 @@
       set_fact:
         public_dns_name: '{{ ec2_info.instances[0].public_dns_name }}'
 
-    - name: Obter lista de webhooks existentes
-      community.general.github_webhook_info:
-        token: '{{ github_token }}'
-        user: '{{ github_user }}'
-        repository: '{{ github_repo }}'
-      register: existing_webhooks
-
     - name: Atualizar o webhook no GitHub
       community.general.github_webhook:
         repository: '{{ github_repo }}'
