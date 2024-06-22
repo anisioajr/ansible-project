@@ -1,0 +1,178 @@
+--- # Criar instancia EC2 mack-ansible-ec2.yml
+- name: Criando um ambiente de ec2 com autoscalling para rodar o website
+  hosts: localhost
+  connection: local
+  become: true
+  vars:
+    region: us-east-1    
+    instance_type: t2.micro
+    ami: ami-0fe630eb857a6ec83
+    key_name: mack-ansible
+    vpc_name: mack-ansible-vpc
+    cidr_block: "10.10.0.0/16"
+    cidr_p: "10.10.1.0/24"
+    cidr_s: "10.10.2.0/24"
+    aws_access_key: "AKIA3FLD2AMS5FNN77O6"
+    aws_secret_key: "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"
+        
+    elb_name: "Mack-Ansible-Elb"
+    target_group_name: "Mack-Ansible-TG"
+        
+  tasks:
+    - name: Criar nova VPC 
+      amazon.aws.ec2_vpc_net:
+        name: "Mack-Ansible-Vpc"
+        cidr_block: "{{ cidr_block }}"
+        aws_access_key: "{{ aws_access_key }}"
+        aws_secret_key: "{{ aws_secret_key }}"
+        region: "{{ region }}"
+      register: vpc
+
+    #Cria um Gateway com a internet    
+    - name: Criar IGW (Internet gateway)
+      amazon.aws.ec2_vpc_igw:
+        vpc_id: "{{ vpc.vpc.id }}"
+        aws_access_key: "{{ aws_access_key }}"
+        aws_secret_key: "{{ aws_secret_key }}"
+        region: "{{ region }}"
+        state: present
+      register: igw
+
+
+    - name: Criar Subnet Primaria
+      amazon.aws.ec2_vpc_subnet:
+        #state: present        
+        aws_access_key: "{{ aws_access_key }}"
+        aws_secret_key: "{{ aws_secret_key }}"
+        cidr: "{{ cidr_p }}"
+        region: "{{ region }}"
+        vpc_id: "{{ vpc.vpc.id }}"
+        az: "{{ region }}a"
+      register: subnet_primaria
+    
+    - name: Criar Subnet Secundaria
+      amazon.aws.ec2_vpc_subnet:
+        #state: present
+        aws_access_key: "{{ aws_access_key }}"
+        aws_secret_key: "{{ aws_secret_key }}"
+        cidr: "{{ cidr_s }}"
+        region: "{{ region }}"
+        vpc_id: "{{ vpc.vpc.id }}"
+        az: "{{ region }}d"
+      register: subnet_secundaria
+    
+    - name: Criar novo Security Group
+      amazon.aws.ec2_security_group:
+        name: "Mack-Ansible-Security-Group"
+        description: "Mack Ansible"
+        aws_access_key: "{{ aws_access_key }}"
+        aws_secret_key: "{{ aws_secret_key }}"
+        vpc_id: "{{ vpc.vpc.id }}"
+        region: "{{ region }}"
+        rules:
+          - proto: tcp
+            ports:
+            - 80
+            cidr_ip: 0.0.0.0/0
+            rule_desc: "allow all on port 80"
+          - proto: tcp
+            ports:
+            - 3001
+            cidr_ip: 0.0.0.0/0
+            rule_desc: "allow all on port 3001"
+          - proto: tcp
+            ports:
+            - 22
+            cidr_ip: 0.0.0.0/0
+            rule_desc: "allow all on port 22"
+      register: security_group
+   
+    - name: Criar configuracao de Launcher
+      community.aws.autoscaling_launch_config:
+        name: "Mack-Ansible-Launcher"
+        image_id: "{{ ami }}"
+        aws_access_key: "{{ aws_access_key }}"
+        aws_secret_key: "{{ aws_secret_key }}"
+        security_groups:
+          - "{{ security_group.group_id  }}"      
+        instance_type: "{{ instance_type }}"
+        region: "{{ region }}"
+      register: autoscalling_launcher
+        
+    #TargetGroup
+    - name: Criar Target Group
+      community.aws.elb_target_group:
+        state: present
+        name: "{{ target_group_name }}"
+        region: "{{ region }}"
+        aws_access_key: "{{ aws_access_key }}"
+        aws_secret_key: "{{ aws_secret_key }}"
+        target_type: instance
+        protocol: http
+        port: 3001
+        vpc_id: "{{ vpc.vpc.id }}"
+        #targets:
+        #  - Id: "{{ ec2.instance_ids[0] }}"
+      register: tg       
+    
+    #LB    
+    - name: Criar configuracao de ELB (Elastic Load Balancer)
+      amazon.aws.elb_application_lb:
+        state: present
+        name: "{{ elb_name }}"
+        aws_access_key: "{{ aws_access_key }}"
+        aws_secret_key: "{{ aws_secret_key }}"
+        region: "{{ region }}"
+        security_groups:
+          - "{{ security_group.group_id  }}"
+        subnets:
+          - "{{ subnet_primaria.subnet.id  }}"
+          - "{{ subnet_secundaria.subnet.id  }}"
+        listeners:
+          - Protocol: HTTP
+            Port: 80            
+            DefaultActions:
+              - Type: forward
+                TargetGroupName: "{{ tg.target_group_name }}"            
+      register: elb 
+    
+    #ASG
+    - name: Criar ASG (Autoscalling Group)  
+      amazon.aws.autoscaling_group:
+        name: "Mack Ansible ASG"
+        aws_access_key: "{{ aws_access_key }}"
+        aws_secret_key: "{{ aws_secret_key }}"
+        #load_balancers: "{{ elb_name }}"
+        target_group_arns: ["{{ tg.target_group_arn }}"]
+        availability_zones: ["{{ subnet_primaria.subnet.availability_zone }}", "{{ subnet_secundaria.subnet.availability_zone }}"]
+        launch_config_name: "Mack-Ansible-Launcher"
+        min_size: 1
+        max_size: 3
+        desired_capacity: 2
+        vpc_zone_identifier: ["{{ subnet_primaria.subnet.id }}", "{{ subnet_secundaria.subnet.id }}" ]
+        region: "{{ region }}"
+        tags:
+          - environment: Producao
+            propagate_at_launch: false        
+      register: asg
+      
+    - name: Criar Instancia EC2    
+      amazon.aws.ec2_instance:
+        state: running
+        name: "Mack Ansible EC2"
+        key_name: "mack-ansible-key"
+        aws_access_key: "{{ aws_access_key }}"
+        aws_secret_key: "{{ aws_secret_key }}"
+        vpc_subnet_id: "{{ subnet_primaria.subnet.id }}"
+        instance_type: "{{ instance_type }}"
+        security_group: "{{ security_group.group_id  }}"
+        count: 1
+        wait: yes
+        aws_region: "{{ region }}"
+        network:
+          assign_public_ip: true
+        image_id: "{{ ami }}"
+        tags:
+          name: "Mack Ansible Web Server"
+      register: ec2
+   
