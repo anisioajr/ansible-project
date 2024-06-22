@@ -6,7 +6,7 @@
 
   vars:
     github_repo: 'anisioajr/web-app-ajr'  # Defina o nome do repositório GitHub
-    github_token: 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  # Defina seu token de acesso GitHub
+    github_token: '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'  # Defina seu token de acesso GitHub
     github_user: 'anisioajr'  # Defina seu nome de usuário GitHub
 
   tasks:
@@ -24,7 +24,7 @@
     - name: Atualizar o webhook no GitHub
       community.general.github_webhook:
         repository: '{{ github_repo }}'
-        token: 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
+        token: '{{ github_token }}'
         user: '{{ github_user }}'
         content_type: json
         url: 'http://{{ public_dns_name }}/webhook'
